@@ -193,20 +193,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: new Error('Customer not found. Please register first.') };
       }
 
-      // Use mobile number as email and a fixed pattern password for customers
-      const email = `${mobileNumber}@customer.pennycarbs.app`;
-      const password = `PC_CUSTOMER_${mobileNumber}`;
+      // Check if user has a non-customer role (staff account)
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', profileData.user_id)
+        .maybeSingle();
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        return { error: new Error(error.message) };
+      if (roleData && roleData.role !== 'customer') {
+        return { error: new Error('This account is registered as staff. Please use the Staff Login page.') };
       }
 
-      return { error: null };
+      // Try customer email pattern first
+      const customerEmail = `${mobileNumber}@customer.pennycarbs.app`;
+      const customerPassword = `PC_CUSTOMER_${mobileNumber}`;
+
+      const { error: customerError } = await supabase.auth.signInWithPassword({
+        email: customerEmail,
+        password: customerPassword,
+      });
+
+      if (!customerError) {
+        return { error: null };
+      }
+
+      // Customer pattern failed - account may have been created differently
+      return { error: new Error('Unable to sign in. If you registered as staff, please use Staff Login.') };
     } catch (error) {
       return { error: error as Error };
     }
