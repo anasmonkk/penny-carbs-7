@@ -136,7 +136,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onSearch }) => {
           <img 
             src={logo} 
             alt="Penny Carbs" 
-            className="h-10 w-auto cursor-pointer hidden sm:block" 
+            className="h-8 sm:h-10 w-auto cursor-pointer flex-shrink-0" 
             onClick={() => navigate('/')}
           />
           {/* Location Display - strictly from profile */}
