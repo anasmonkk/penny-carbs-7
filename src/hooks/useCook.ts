@@ -106,7 +106,7 @@ export function useCookOrders() {
           quantity,
           unit_price,
           total_price,
-          food_item:food_items(id, name)
+          food_item:food_items(id, name, price)
         `)
         .in('order_id', orderIds);
 
@@ -254,7 +254,7 @@ export function useCookOrderHistory() {
         .from('order_items')
         .select(`
           id, order_id, food_item_id, quantity, unit_price, total_price,
-          food_item:food_items(id, name)
+          food_item:food_items(id, name, price)
         `)
         .in('order_id', orderIds)
         .eq('assigned_cook_id', profile.id);

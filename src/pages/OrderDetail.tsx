@@ -9,10 +9,21 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Package, Clock, CheckCircle, XCircle, Truck, MapPin, Phone } from 'lucide-react';
 import BottomNav from '@/components/customer/BottomNav';
+import { calculatePlatformMargin } from '@/lib/priceUtils';
 
 interface OrderItemWithFood extends OrderItem {
   food_item: FoodItem;
 }
+
+// Get the customer-facing price (base + platform margin)
+const getCustomerUnitPrice = (item: OrderItemWithFood): number => {
+  const foodItem = item.food_item;
+  if (!foodItem) return item.unit_price;
+  const marginType = (foodItem.platform_margin_type || 'percent') as 'percent' | 'fixed';
+  const marginValue = foodItem.platform_margin_value || 0;
+  const margin = calculatePlatformMargin(foodItem.price, marginType, marginValue);
+  return foodItem.price + margin;
+};
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ReactNode }> = {
   pending: { label: 'Pending', color: 'bg-warning text-warning-foreground', icon: <Clock className="h-4 w-4" /> },
@@ -203,26 +214,32 @@ const OrderDetail: React.FC = () => {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="space-y-3">
-              {orderItems.map((item) => (
-                <div key={item.id} className="flex justify-between border-b pb-3 last:border-0 last:pb-0">
-                  <div>
-                    <p className="font-medium">{item.food_item?.name || 'Item'}</p>
-                    <p className="text-sm text-muted-foreground">
-                      ₹{item.unit_price} × {item.quantity}
-                    </p>
-                    {item.special_instructions && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Note: {item.special_instructions}
+              {orderItems.map((item) => {
+                const customerPrice = getCustomerUnitPrice(item);
+                const itemTotal = customerPrice * item.quantity;
+                return (
+                  <div key={item.id} className="flex justify-between border-b pb-3 last:border-0 last:pb-0">
+                    <div>
+                      <p className="font-medium">{item.food_item?.name || 'Item'}</p>
+                      <p className="text-sm text-muted-foreground">
+                        ₹{customerPrice} × {item.quantity}
                       </p>
-                    )}
+                      {item.special_instructions && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Note: {item.special_instructions}
+                        </p>
+                      )}
+                    </div>
+                    <p className="font-semibold">₹{itemTotal}</p>
                   </div>
-                  <p className="font-semibold">₹{item.total_price}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div className="mt-4 flex justify-between border-t pt-3">
               <p className="font-semibold">Total</p>
-              <p className="font-semibold text-primary">₹{order.total_amount}</p>
+              <p className="font-semibold text-primary">
+                ₹{orderItems.reduce((sum, item) => sum + getCustomerUnitPrice(item) * item.quantity, 0)}
+              </p>
             </div>
           </CardContent>
         </Card>
