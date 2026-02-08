@@ -31,6 +31,7 @@ export interface CookOrderItem {
   food_item?: {
     id: string;
     name: string;
+    price: number;
   };
 }
 

@@ -73,9 +73,9 @@ const CookDashboard: React.FC = () => {
         const existing = map.get(name);
         if (existing) {
           existing.totalQty += item.quantity;
-          existing.totalAmount += item.total_price;
+          existing.totalAmount += (item.food_item?.price || item.unit_price) * item.quantity;
         } else {
-          map.set(name, { name, totalQty: item.quantity, totalAmount: item.total_price });
+          map.set(name, { name, totalQty: item.quantity, totalAmount: (item.food_item?.price || item.unit_price) * item.quantity });
         }
       });
     });
@@ -341,7 +341,7 @@ const CookDashboard: React.FC = () => {
                               <div key={item.id} className="flex items-center justify-between text-sm">
                                 <span className="font-medium">{item.food_item?.name || 'Unknown Dish'}</span>
                                 <span className="text-muted-foreground">
-                                  Qty: {item.quantity} × ₹{item.unit_price}
+                                  Qty: {item.quantity} × ₹{item.food_item?.price || item.unit_price}
                                 </span>
                               </div>
                             ))}
@@ -349,7 +349,7 @@ const CookDashboard: React.FC = () => {
                           <div className="mt-2 pt-2 border-t flex justify-between text-sm font-medium">
                             <span>Your Items Total</span>
                             <span className="text-primary">
-                              ₹{order.order_items.reduce((sum, item) => sum + item.total_price, 0).toLocaleString()}
+                              ₹{order.order_items.reduce((sum, item) => sum + (item.food_item?.price || item.unit_price) * item.quantity, 0).toLocaleString()}
                             </span>
                           </div>
                         </div>
@@ -512,14 +512,14 @@ const CookDashboard: React.FC = () => {
                           {assignment.order_items.map((item) => (
                             <div key={item.id} className="flex items-center justify-between text-sm">
                               <span>{item.food_item?.name || 'Unknown'}</span>
-                              <span className="text-muted-foreground">Qty: {item.quantity} × ₹{item.unit_price}</span>
+                              <span className="text-muted-foreground">Qty: {item.quantity} × ₹{item.food_item?.price || item.unit_price}</span>
                             </div>
                           ))}
                         </div>
                         <div className="mt-2 pt-2 border-t flex justify-between text-sm font-medium">
                           <span>Your Earnings</span>
                           <span className="text-primary">
-                            ₹{assignment.order_items.reduce((sum, item) => sum + item.total_price, 0).toLocaleString()}
+                            ₹{assignment.order_items.reduce((sum, item) => sum + (item.food_item?.price || item.unit_price) * item.quantity, 0).toLocaleString()}
                           </span>
                         </div>
                       </div>
